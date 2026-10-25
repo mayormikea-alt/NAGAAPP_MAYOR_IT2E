@@ -3,7 +3,6 @@ package com.scc.ui;
 import com.scc.dao.UserDao;
 import com.scc.model.User;
 
-import java.util.Optional;
 import java.util.Scanner;
 
 public class MainMenu {
@@ -24,7 +23,7 @@ public class MainMenu {
 
             switch (scanner.nextLine().trim()) {
                 case "1" -> register();
-                case "2" -> login();
+                case "2" -> handleLogin();
                 case "3" -> {
                     System.out.println("Thank you for using Naga App. Goodbye!");
                     running = false;
@@ -76,23 +75,30 @@ public class MainMenu {
         return switch (scanner.nextLine().trim()) {
             case "1" -> "CITIZEN";
             case "2" -> "GOVERNMENT OFFICIAL / RESPONDER";
-            case "3" -> "ADMINISTRATOR";
+            case "3" -> "ADMIN"; // Aligned with UserDao check ("ADMIN")
             default -> null;
         };
     }
 
-    private void login() {
-        System.out.println("\n--- Login ---");
-        System.out.print("Username: ");
+    private void handleLogin() {
+        System.out.print("Enter Username: ");
         String username = scanner.nextLine().trim();
-        System.out.print("Password: ");
+        System.out.print("Enter Password: ");
         String password = scanner.nextLine().trim();
 
-        Optional<User> result = userDao.login(username, password);
-        if (result.isPresent()) {
-            new UserMenu(scanner, result.get()).show();
+        User user = userDao.login(username, password).orElse(null);
+
+        if (user != null) {
+            System.out.println(" > Welcome " + user.username() + " | ROLE: " + user.roles());
+
+            switch (user.roles()) {
+                case "ADMIN" -> new AdminMenu(userDao, scanner).display(user);
+                case "CITIZEN" -> System.out.println("Citizen features coming soon.");
+                case "GOVERNMENT OFFICIAL / RESPONDER" -> System.out.println("Responder features coming soon.");
+                default -> System.out.println("Account role not recognized!");
+            }
         } else {
-            System.out.println("Invalid username or password.");
+            System.out.println("Login failed: Invalid username or password.");
         }
     }
 }

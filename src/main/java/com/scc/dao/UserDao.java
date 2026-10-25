@@ -6,6 +6,31 @@ import java.util.Optional;
 
 public class UserDao {
 
+    public UserDao() {
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            defaultAdminGenerator(conn);
+        } catch (SQLException e) {
+            System.err.println("Error seeding default admin: " + e.getMessage());
+        }
+    }
+
+    public void defaultAdminGenerator(Connection conn) {
+        String checkSql = "SELECT COUNT(*) FROM users WHERE roles = 'ADMIN'";
+        // Included name, latitude, and longitude to satisfy NOT NULL constraints
+        String insertSql = "INSERT INTO users(name, username, password, roles, status, latitude, longitude) " +
+                "VALUES('Administrator', 'admin', 'admin123', 'ADMIN', 'APPROVED', 0.0, 0.0)";
+
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(checkSql)) {
+            if (rs.next() && rs.getInt(1) == 0) {
+                stmt.executeUpdate(insertSql);
+                System.out.println(" -> Default Admin created <-");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error seeding default admin: " + e.getMessage());
+        }
+    }
+
     public boolean register(String name, String username, String password, String roles, double lat, double lon) {
         String sql = "INSERT INTO users (name, username, password, roles, status, latitude, longitude) VALUES (?, ?, ?, ?, 'ACTIVE', ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();

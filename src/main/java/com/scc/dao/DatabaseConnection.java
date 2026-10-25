@@ -7,10 +7,11 @@ import java.sql.Statement;
 
 public class DatabaseConnection {
 
-    private static final String URL = "jdbc:sqlite:nagaAppRecords.db";
+    private static final String DB_URL = "jdbc:sqlite:NagaAppSystemUser.db";
 
     public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(URL);
+        Connection conn = DriverManager.getConnection(DB_URL);
+        return conn;
     }
 
     public static void initialize() {
