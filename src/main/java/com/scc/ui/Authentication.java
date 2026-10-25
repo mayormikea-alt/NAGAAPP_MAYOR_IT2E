@@ -5,10 +5,15 @@ import com.scc.model.User;
 
 import java.util.Scanner;
 
-public class MainMenu {
+public class Authentication {
 
-    private final Scanner scanner = new Scanner(System.in);
-    private final UserDao userDao = new UserDao();
+    private final Scanner scanner;
+    private final UserDao userDao;
+
+    public Authentication(UserDao userDao, Scanner scanner) {
+        this.userDao = userDao;
+        this.scanner = scanner;
+    }
 
     public void start() {
         boolean running = true;
@@ -75,7 +80,7 @@ public class MainMenu {
         return switch (scanner.nextLine().trim()) {
             case "1" -> "CITIZEN";
             case "2" -> "GOVERNMENT OFFICIAL / RESPONDER";
-            case "3" -> "ADMIN"; // Aligned with UserDao check ("ADMIN")
+            case "3" -> "ADMIN";
             default -> null;
         };
     }
@@ -93,8 +98,7 @@ public class MainMenu {
 
             switch (user.roles()) {
                 case "ADMIN" -> new AdminMenu(userDao, scanner).display(user);
-                case "CITIZEN" -> System.out.println("Citizen features coming soon.");
-                case "GOVERNMENT OFFICIAL / RESPONDER" -> System.out.println("Responder features coming soon.");
+                case "CITIZEN", "GOVERNMENT OFFICIAL / RESPONDER" -> new UserMenu(scanner, user).show();
                 default -> System.out.println("Account role not recognized!");
             }
         } else {

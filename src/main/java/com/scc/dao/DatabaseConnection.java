@@ -9,9 +9,13 @@ public class DatabaseConnection {
 
     private static final String DB_URL = "jdbc:sqlite:NagaAppSystemUser.db";
 
-    public static Connection getConnection() throws SQLException {
+    public static Connection getConnection() throws SQLException{
         Connection conn = DriverManager.getConnection(DB_URL);
-        return conn;
+
+        try(Statement stmt = conn.createStatement()){
+            stmt.execute("PRAGMA foreign_keys =  ON ");
+        }
+        return  conn;
     }
 
     public static void initialize() {
