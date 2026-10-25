@@ -16,7 +16,6 @@ public class UserDao {
 
     public void defaultAdminGenerator(Connection conn) {
         String checkSql = "SELECT COUNT(*) FROM users WHERE roles = 'ADMIN'";
-        // Included name, latitude, and longitude to satisfy NOT NULL constraints
         String insertSql = "INSERT INTO users(name, username, password, roles, status, latitude, longitude) " +
                 "VALUES('Administrator', 'admin', 'admin123', 'ADMIN', 'APPROVED', 0.0, 0.0)";
 
