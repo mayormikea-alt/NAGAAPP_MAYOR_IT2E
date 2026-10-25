@@ -32,7 +32,7 @@ public class UserDao {
     }
 
     public boolean register(String name, String username, String password, String roles, double lat, double lon) {
-        String sql = "INSERT INTO users (name, username, password, roles, status, latitude, longitude) VALUES (?, ?, ?, ?, 'ACTIVE', ?, ?)";
+        String sql = "INSERT INTO users (name, username, password, roles, status, latitude, longitude) VALUES (?, ?, ?, ?, 'PENDING', ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, name);
