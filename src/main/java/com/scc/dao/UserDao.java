@@ -39,7 +39,7 @@ public class UserDao {
             ps.setString(1, name);
             ps.setString(2, username);
             ps.setString(3, password);
-            ps.setString(4, roles);
+            ps.setString(4, roles.toUpperCase());
             ps.setDouble(5, lat);
             ps.setDouble(6, lon);
             ps.executeUpdate();
@@ -152,5 +152,20 @@ public class UserDao {
             System.out.println("Failed to approve user: " + e.getMessage());
         }
         return false;
+    }
+
+    public boolean updateUserRoleAndStatus(int userId, String newRole, String newStatus) {
+        String sql = "UPDATE users SET roles = ?, status = ? WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, newRole.toUpperCase());
+            ps.setString(2, newStatus.toUpperCase());
+            ps.setInt(3, userId);
+            int rowsUpdated = ps.executeUpdate();
+            return rowsUpdated > 0;
+        } catch (SQLException e) {
+            System.out.println("Update failed: " + e.getMessage());
+            return false;
+        }
     }
 }

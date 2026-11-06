@@ -29,17 +29,15 @@ public class AdminMenu {
             System.out.println("5. Update User role / Status");
             System.out.println("6. Delete User");
             System.out.println("7. Logout");
-            System.out.print("Select: ");
 
-            int select = scanner.nextInt();
-            scanner.nextLine(); // Consume newline
+            int select = readIntInput("Select: ");
 
             switch (select) {
                 case 1 -> viewAllUser();
                 case 2 -> viewPendingUser();
                 case 3 -> approveUser();
                 case 4 -> System.out.println("Add User feature coming soon.");
-                case 5 -> System.out.println("Update User feature coming soon.");
+                case 5 -> updateUserRoleAndStatus(admin);
                 case 6 -> System.out.println("Delete User feature coming soon.");
                 case 7 -> {
                     System.out.println("Logged out from Admin Dashboard.");
@@ -47,6 +45,40 @@ public class AdminMenu {
                 }
                 default -> System.out.println("Invalid choice. Please select between 1 and 7.");
             }
+        }
+    }
+
+    private int readIntInput(String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            String input = scanner.nextLine().trim();
+            try {
+                return Integer.parseInt(input);
+            } catch (NumberFormatException e) {
+                System.out.println("[ERROR] Invalid numeric input. Please enter a valid number.");
+            }
+        }
+    }
+
+    private String readValidRole() {
+        while (true) {
+            System.out.print("Enter new role (CITIZEN / GOVERNMENT OFFICIAL / RESPONDER / ADMIN / STUDENT / TEACHER): ");
+            String role = scanner.nextLine().trim().toUpperCase();
+            if (!role.isEmpty()) {
+                return role;
+            }
+            System.out.println("[ERROR] Role cannot be empty. Please enter a valid role.");
+        }
+    }
+
+    private String readValidStatus() {
+        while (true) {
+            System.out.print("Enter new status (APPROVED / PENDING): ");
+            String status = scanner.nextLine().trim().toUpperCase();
+            if (status.equals("APPROVED") || status.equals("PENDING") || status.equals("ACTIVE")) {
+                return status;
+            }
+            System.out.println("[ERROR] Invalid status. Please enter APPROVED or PENDING.");
         }
     }
 
@@ -83,9 +115,7 @@ public class AdminMenu {
         if (pendingUsers.isEmpty()) {
             return;
         }
-        System.out.print("Enter User ID to Approve (or 0 to cancel): ");
-        int userID = scanner.nextInt();
-        scanner.nextLine();
+        int userID = readIntInput("Enter User ID to Approve (or 0 to cancel): ");
 
         if (userID == 0) {
             System.out.println("-> Operation Cancelled by the User");
@@ -97,5 +127,42 @@ public class AdminMenu {
             return;
         }
         userDao.approveUser(userID);
+    }
+
+    private void updateUserRoleAndStatus(User admin) {
+        List<User> users = userDao.getAllUsers();
+        displayUserTable(users, "ALL REGISTERED USERS");
+
+        if (users.isEmpty()) {
+            return;
+        }
+
+        int targetUserId = readIntInput("Enter User ID to Update (or 0 to cancel): ");
+
+        if (targetUserId == 0) {
+            System.out.println("-> Operation Cancelled by the User");
+            return;
+        }
+
+        // Self-Edit Restriction Guardrail
+        if (targetUserId == admin.id()) {
+            System.out.println("WARNING: Modifying the currently active admin account is restricted.");
+            return;
+        }
+
+        boolean exists = users.stream().anyMatch(u -> u.id() == targetUserId);
+        if (!exists) {
+            System.out.println("[ERROR] User ID not found.");
+            return;
+        }
+
+        String newRole = readValidRole();
+        String newStatus = readValidStatus();
+
+        if (userDao.updateUserRoleAndStatus(targetUserId, newRole, newStatus)) {
+            System.out.println("User ID " + targetUserId + " updated successfully!");
+        } else {
+            System.out.println("[ERROR] Failed to update user role and status.");
+        }
     }
 }
