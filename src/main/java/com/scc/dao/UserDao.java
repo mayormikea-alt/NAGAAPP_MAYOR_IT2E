@@ -2,6 +2,8 @@ package com.scc.dao;
 
 import com.scc.model.User;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class UserDao {
@@ -16,7 +18,6 @@ public class UserDao {
 
     public void defaultAdminGenerator(Connection conn) {
         String checkSql = "SELECT COUNT(*) FROM users WHERE roles = 'ADMIN'";
-        // Included name, latitude, and longitude to satisfy NOT NULL constraints
         String insertSql = "INSERT INTO users(name, username, password, roles, status, latitude, longitude) " +
                 "VALUES('Administrator', 'admin', 'admin123', 'ADMIN', 'APPROVED', 0.0, 0.0)";
 
@@ -87,5 +88,69 @@ public class UserDao {
             System.out.println("Login failed: " + e.getMessage());
         }
         return Optional.empty();
+    }
+
+    public List<User> getAllUsers() {
+        List<User> users = new ArrayList<>();
+        String sql = "SELECT id, name, username, password, roles, status, latitude, longitude FROM users";
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                users.add(new User(
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getString("username"),
+                        rs.getString("password"),
+                        rs.getString("roles"),
+                        rs.getString("status"),
+                        rs.getDouble("latitude"),
+                        rs.getDouble("longitude")
+                ));
+            }
+        } catch (SQLException e) {
+            System.out.println("Error fetching users: " + e.getMessage());
+        }
+        return users;
+    }
+
+    public List<User> getPendingUser() {
+        List<User> users = new ArrayList<>();
+        String sql = "SELECT id, name, username, password, roles, status, latitude, longitude FROM users WHERE status = 'PENDING'";
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                users.add(new User(
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getString("username"),
+                        rs.getString("password"),
+                        rs.getString("roles"),
+                        rs.getString("status"),
+                        rs.getDouble("latitude"),
+                        rs.getDouble("longitude")
+                ));
+            }
+        } catch (SQLException e) {
+            System.out.println("Error fetching pending users: " + e.getMessage());
+        }
+        return users;
+    }
+
+    public boolean approveUser(int userId) {
+        String sql = "UPDATE users SET status = 'APPROVED' WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            int rowsUpdated = ps.executeUpdate();
+            if (rowsUpdated > 0) {
+                System.out.println("User ID " + userId + " approved successfully.");
+                return true;
+            }
+        } catch (SQLException e) {
+            System.out.println("Failed to approve user: " + e.getMessage());
+        }
+        return false;
     }
 }
